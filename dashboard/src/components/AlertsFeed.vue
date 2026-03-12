@@ -45,7 +45,7 @@ h3 { color: #e2e8f0; margin: 0 0 1rem; font-size: 1rem; }
 .empty { color: #475569; font-size: 0.85rem; text-align: center; padding: 1rem; }
 .alert-item {
   display: grid;
-  grid-template-columns: 80px 90px 80px 60px 1fr;
+  grid-template-columns: 76px 78px 75px 47px 1fr;
   gap: 0.5rem;
   align-items: center;
   padding: 0.4rem 0.6rem;

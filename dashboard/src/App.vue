@@ -100,11 +100,12 @@ header {
 main { display: grid; grid-template-columns: 1fr 380px; gap: 1.5rem; }
 
 .patients-section h2 { color: #94a3b8; font-size: 0.9rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
-.patients-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+.patients-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
 
 .no-data { color: #475569; text-align: center; padding: 2rem; grid-column: 1/-1; }
 
 @media (max-width: 900px) {
   main { grid-template-columns: 1fr; }
+  .patients-grid { grid-template-columns: 1fr; }
 }
 </style>
