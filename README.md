@@ -251,5 +251,4 @@ Algorithme non supervisé — pas besoin de données labelisées "normal/anomali
 
 ## 👤 Auteur
 
-**Aquilas KIKISSAGBE**
 - GitHub: [@Aqui05](https://github.com/Aqui05)
