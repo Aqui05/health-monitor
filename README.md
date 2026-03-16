@@ -5,8 +5,10 @@
 ![ML](https://img.shields.io/badge/ML-Isolation%20Forest-green)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED)
 ![Vue.js](https://img.shields.io/badge/Vue.js-3-4FC08D)
+![Next.js](https://img.shields.io/badge/Next.js-15-black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6)
 
-Système temps réel de surveillance de patients atteints de maladies chroniques (diabète, hypertension, risque cardiaque). Les données de capteurs IoT sont collectées, traitées via un pipeline Kafka, scorées par un modèle de Machine Learning et visualisées sur un dashboard Vue.js.
+Système temps réel de surveillance de patients atteints de maladies chroniques (diabète, hypertension, risque cardiaque). Les données de capteurs IoT sont collectées, traitées via un pipeline Kafka, scorées par un modèle de Machine Learning et visualisées sur **deux dashboards** : Vue.js 3 et Next.js 15 + TypeScript.
 
 ---
 
@@ -16,7 +18,7 @@ Système temps réel de surveillance de patients atteints de maladies chroniques
 - **Pipeline temps réel** — ingestion et distribution via Apache Kafka
 - **Détection d'anomalies ML** — modèle Isolation Forest entraîné sur 5000 lectures simulées
 - **Stockage hybride** — PostgreSQL pour les alertes et profils patients, InfluxDB pour les séries temporelles
-- **Dashboard interactif** — Vue.js avec rafraîchissement automatique toutes les 2 secondes
+- **Deux dashboards** — Vue.js 3 (port 3000) et Next.js 15 + TypeScript (port 3001), tous deux rafraîchis toutes les 2 secondes
 - **API REST** — FastAPI exposant les données aux clients
 
 ---
@@ -26,22 +28,19 @@ Système temps réel de surveillance de patients atteints de maladies chroniques
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        COLLECTE IoT                             │
-│                                                                 │
 │   ┌──────────────┐                                              │
-│   │ IoT Simulator│  5 patients · 5 métriques · toutes les 2s   │
-│   │   (Python)   │                                              │
+│   │ IoT Simulator│  5 patients · 5 métriques · toutes les 2s    │
 │   └──────┬───────┘                                              │
 └──────────┼──────────────────────────────────────────────────────┘
            │ Kafka Producer
            ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                    MESSAGERIE DISTRIBUÉE                        │
-│                                                                 │
-│   ┌─────────────────────────────────────────┐                  │
-│   │         Apache Kafka + Zookeeper        │                  │
-│   │         Topic: health-data              │                  │
-│   └────┬──────────────┬──────────────┬──────┘                  │
-└────────┼──────────────┼──────────────┼───────────────────────┘
+│   ┌─────────────────────────────────────────┐                   │
+│   │      Apache Kafka + Zookeeper           │                   │
+│   │      Topic: health-data                 │                   │
+│   └────┬──────────────┬──────────────┬──────┘                   │
+└────────┼──────────────┼──────────────┼──────────────────────────┘
          │              │              │
          ▼              ▼              ▼
   ┌──────────┐  ┌──────────────┐  ┌──────────┐
@@ -54,25 +53,21 @@ Système temps réel de surveillance de patients atteints de maladies chroniques
                                         ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                       EXPOSITION API                            │
-│                                                                 │
-│   ┌─────────────────────────────────────────┐                  │
-│   │           API Gateway (FastAPI)         │                  │
-│   │   GET /patients/latest                  │                  │
-│   │   GET /alerts/recent                    │                  │
-│   └──────────────────┬──────────────────────┘                  │
+│   ┌─────────────────────────────────────────┐                   │
+│   │           API Gateway (FastAPI)         │                   │
+│   │   GET /patients/latest                  │                   │
+│   │   GET /alerts/recent                    │                   │
+│   │   GET /stats                            │                   │
+│   └──────────────────┬──────────────────────┘                   │
 └──────────────────────┼──────────────────────────────────────────┘
                        │
-                       ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      VISUALISATION                              │
-│                                                                 │
-│   ┌─────────────────────────────────────────┐                  │
-│   │         Dashboard Vue.js 3 + Vite       │                  │
-│   │   • Cartes patients temps réel          │                  │
-│   │   • Scores ML (LOW / MEDIUM / HIGH)     │                  │
-│   │   • Fil d'alertes cliniques             │                  │
-│   └─────────────────────────────────────────┘                  │
-└─────────────────────────────────────────────────────────────────┘
+          ┌────────────┴────────────┐
+          ▼                         ▼
+┌──────────────────┐     ┌──────────────────────┐
+│ Dashboard Vue.js │     │ Dashboard Next.js    │
+│ Vue 3 + Vite     │     │ Next.js 15+TypeScript│
+│ Port 3000        │     │ Port 3001            │
+└──────────────────┘     └──────────────────────┘
 ```
 
 ---
@@ -87,7 +82,8 @@ Système temps réel de surveillance de patients atteints de maladies chroniques
 | Stockage temporel | InfluxDB 2.7 | Métriques time-series |
 | Machine Learning | scikit-learn (Isolation Forest) | Détection d'anomalies |
 | API | FastAPI + Uvicorn | Exposition REST |
-| Frontend | Vue.js 3 + Vite | Dashboard temps réel |
+| Frontend v1 | Vue.js 3 + Vite | Dashboard temps réel (port 3000) |
+| Frontend v2 | Next.js 15 + TypeScript | Dashboard dark theme (port 3001) |
 | Conteneurisation | Docker + Docker Compose | Orchestration |
 
 ---
@@ -126,17 +122,72 @@ docker compose down -v
 
 | Service | URL | Description |
 |---|---|---|
-| **Dashboard** | http://localhost:3000 | Interface de visualisation |
-| **API Gateway** | http://localhost:5000 | API REST (patients, alertes) |
+| **Dashboard Vue.js** | http://localhost:3000 | Interface Vue.js 3 + Vite |
+| **Dashboard Next.js** | http://localhost:3001 | Interface Next.js 15 + TypeScript (dark theme) |
+| **API Gateway** | http://localhost:5000 | API REST (patients, alertes, stats) |
 | **ML Service** | http://localhost:8000 | Endpoint de prédiction |
 | **Kafka UI** | http://localhost:8080 | Interface Kafka |
 | **InfluxDB** | http://localhost:8086 | UI time-series (admin/health123) |
 
 ---
 
+## 🖥️ Les deux dashboards
+
+### Dashboard Vue.js 3 — port 3000
+
+Interface légère construite avec Vue.js 3 (Options API + Composables) et Vite.
+
+```
+dashboard/
+├── src/
+│   ├── App.vue                   # Layout + stats header
+│   ├── components/
+│   │   ├── PatientCard.vue       # Carte patient + métriques + badge risque
+│   │   └── AlertsFeed.vue        # Fil alertes temps réel
+│   └── composables/
+│       └── useHealthData.js      # Polling API toutes les 2s
+├── vite.config.js                # Proxy /api → api-gateway:5000
+└── Dockerfile
+```
+
+### Dashboard Next.js 15 — port 3001
+
+Interface dark theme construite avec Next.js 15 App Router et TypeScript strict.
+
+```
+dashboard-nextjs/
+├── app/
+│   ├── layout.tsx                # Layout global dark theme
+│   └── page.tsx                  # Page principale → <Dashboard />
+├── components/
+│   ├── Dashboard.tsx             # Client component — polling toutes les 2s
+│   ├── StatsBar.tsx              # Header avec KPIs et statut connexion
+│   ├── PatientCard.tsx           # Carte patient typée TypeScript
+│   ├── MetricTile.tsx            # Tuile individuelle d'une métrique
+│   └── AlertsFeed.tsx            # Fil d'alertes temps réel
+├── lib/
+│   ├── types.ts                  # Types TypeScript (Patient, Alert, Stats...)
+│   ├── api.ts                    # Fonctions fetch vers l'API Gateway
+│   └── utils.ts                  # Helpers (couleurs, labels, formatage)
+├── next.config.mjs               # Proxy /api/gateway/* → api-gateway:5000
+└── Dockerfile
+```
+
+**Comparaison des deux dashboards :**
+
+| Critère | Vue.js (port 3000) | Next.js (port 3001) |
+|---|---|---|
+| Langage | JavaScript | TypeScript strict |
+| Framework | Vue 3 + Vite | Next.js 15 App Router |
+| Thème | Clair | Sombre |
+| Typage | Dynamique | Statique (compile-time) |
+| Proxy | Vite dev server | Next.js rewrites |
+
+---
+
 ## 🤖 Modèle ML — Isolation Forest
 
-Le service ML utilise un **Isolation Forest** — algorithme non supervisé de détection d'anomalies. Il est entraîné sur 5000 lectures simulées (95% normales, 5% anomalies) et scorer chaque nouvelle lecture en temps réel.
+Le service ML utilise un **Isolation Forest** — algorithme non supervisé de détection d'anomalies. Il est entraîné sur 5000 lectures simulées (95% normales, 5% anomalies) et score chaque nouvelle lecture en temps réel.
 
 **Métriques surveillées et seuils cliniques :**
 
@@ -174,39 +225,13 @@ curl -X POST http://localhost:8000/predict \
 ```
 health-monitor/
 ├── iot-simulator/          # Simulateur de capteurs IoT
-│   ├── main.py
-│   ├── requirements.txt
-│   └── Dockerfile
 ├── kafka-consumer/         # Consumer console (alertes)
-│   ├── main.py
-│   ├── requirements.txt
-│   └── Dockerfile
 ├── storage-service/        # Persistance PostgreSQL + InfluxDB
-│   ├── main.py
-│   ├── requirements.txt
-│   └── Dockerfile
 ├── ml-service/             # Détection d'anomalies (Isolation Forest)
-│   ├── train.py            # Entraînement du modèle
-│   ├── main.py             # API FastAPI + scoring Kafka
-│   ├── requirements.txt
-│   └── Dockerfile
-├── api-gateway/            # API REST exposée au dashboard
-│   ├── main.py
-│   ├── requirements.txt
-│   └── Dockerfile
-├── dashboard/              # Frontend Vue.js 3
-│   ├── src/
-│   │   ├── App.vue
-│   │   ├── components/
-│   │   │   ├── PatientCard.vue
-│   │   │   └── AlertsFeed.vue
-│   │   └── composables/
-│   │       └── useHealthData.js
-│   ├── index.html
-│   ├── vite.config.js
-│   ├── package.json
-│   └── Dockerfile
-└── docker-compose.yml      # Orchestration complète
+├── api-gateway/            # API REST exposée aux dashboards
+├── dashboard/              # Frontend Vue.js 3 — port 3000
+├── dashboard-nextjs/       # Frontend Next.js 15 + TypeScript — port 3001
+└── docker-compose.yml      # Orchestration complète (10 services)
 ```
 
 ---
@@ -228,5 +253,3 @@ Algorithme non supervisé — pas besoin de données labelisées "normal/anomali
 
 **Aquilas KIKISSAGBE**
 - GitHub: [@Aqui05](https://github.com/Aqui05)
-- LinkedIn: [aquilas-kikissagbe](https://linkedin.com/in/aquilas-kikissagbe-542423296)
-- Email: kikissagbeaquilas@gmail.com

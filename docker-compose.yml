@@ -163,6 +163,17 @@ services:
       - health-net
     restart: on-failure
 
+  dashboard-nextjs:
+    build: ./dashboard-nextjs
+    container_name: dashboard-nextjs
+    depends_on:
+      - api-gateway
+    ports:
+      - "3001:3001"
+    networks:
+      - health-net
+    restart: on-failure
+
 volumes:
   postgres-data:
   influx-data:
